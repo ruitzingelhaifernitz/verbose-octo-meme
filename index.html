@@ -5,524 +5,366 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Pizza Slot Machine</title>
 <style>
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: url('warm-wood.jpg') no-repeat center center fixed;
-    background-size: cover;
-    user-select: none;
-    overflow: hidden;
-  }
-  #game-container {
-    max-width: 650px;
-    margin: 20px auto 0;
-    background: rgba(255 255 255 / 0.85);
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    padding: 20px;
+  body {
+    font-family: sans-serif;
+    background: url('wood-bg.jpg') center/cover no-repeat;
     display: flex;
     flex-direction: column;
     align-items: center;
-  }
-
-  #scoreboard {
-    font-size: 1.5rem;
-    margin-bottom: 12px;
-    font-weight: 600;
-  }
-
-  #reels {
-    display: grid;
-    grid-template-columns: repeat(5, 120px);
-    grid-template-rows: 1fr;
-    gap: 8px;
     justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    user-select: none;
+  }
+  #slot-machine {
+    display: flex;
+    gap: 10px;
     margin-bottom: 20px;
-    user-select: none;
   }
-
-  .reel-cell {
-    background: #fff;
-    border: 3px solid #d9534f;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .reel {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-    position: relative;
+    box-shadow: 0 0 8px rgba(0,0,0,0.5);
   }
-  .reel-cell img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    display: block;
+  .reel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s;
   }
-
-  @keyframes flashBorder {
-    0%, 100% { border-color: #d9534f; box-shadow: 0 0 8px #d9534f; }
-    50% { border-color: #f0ad4e; box-shadow: 0 0 20px #f0ad4e; }
+  .highlight {
+    animation: flash 0.5s alternate;
+    animation-iteration-count: 2;
   }
-  .reel-cell.flash {
-    animation: flashBorder 1s ease-in-out;
-    border-width: 4px !important;
+  @keyframes flash {
+    0% { filter: brightness(1); }
+    100% { filter: brightness(2); }
   }
-
-  #spin-btn {
-    background: #d9534f;
-    color: white;
-    border: none;
-    font-size: 1.25rem;
-    font-weight: 700;
-    padding: 12px 40px;
-    border-radius: 30px;
+  #spin-button {
+    padding: 10px 20px;
+    font-size: 18px;
     cursor: pointer;
-    user-select: none;
-    transition: background 0.3s ease;
+    border: none;
+    background: tomato;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
   }
-  #spin-btn:hover:not(:disabled) {
-    background: #c9302c;
+  #spin-button:disabled {
+    background: #cc4d4d;
+    cursor: not-allowed;
   }
-  #spin-btn:disabled {
-    background: #aaa;
-    cursor: default;
-  }
-
-  #splash-screen {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
+  #score, #spin-count {
+    margin-top: 15px;
+    font-size: 20px;
     color: #fff;
+    background: rgba(0,0,0,0.4);
+    padding: 5px 10px;
+    border-radius: 6px;
+    user-select: none;
+    min-width: 140px;
+    text-align: center;
+  }
+  #message {
+    position: absolute;
+    top: 10%;
+    background: gold;
+    padding: 15px 20px;
+    font-size: 24px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    display: none;
+    user-select: none;
+  }
+  #win-splash {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 18px;
-    font-size: 1.6rem;
-    text-align: center;
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-  }
-  #splash-screen.visible {
-    opacity: 1;
-    pointer-events: all;
-  }
-  #splash-pizza {
-    max-width: 300px;
-    max-height: 300px;
-    border: 5px solid #d9534f;
-    border-radius: 15px;
-    box-shadow: 0 0 20px #d9534f;
-  }
-  #splash-msg {
-    font-weight: 700;
-  }
-  .splash-btn {
-    background: #d9534f;
-    border: none;
-    padding: 12px 32px;
-    font-size: 1.2rem;
     color: white;
-    border-radius: 25px;
-    cursor: pointer;
-    margin: 0 10px;
+    font-size: 24px;
+    z-index: 9999;
+    display: none;
     user-select: none;
-    transition: background 0.3s ease;
   }
-  .splash-btn:hover {
-    background: #c9302c;
+  #win-splash img {
+    max-width: 300px;
+    margin: 20px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px gold;
   }
-
-  #confetti-container {
-    pointer-events: none;
-    position: fixed;
-    inset: 0;
-    z-index: 1100;
-    overflow: visible;
+  #win-splash button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 10px;
+    border: none;
+  }
+  #buy-link button {
+    background: #28a745;
+    color: white;
+  }
+  #challenge-friend {
+    background: #007bff;
+    color: white;
+  }
+  #win-splash button:hover {
+    opacity: 0.85;
+  }
+  #win-splash #spin-total {
+    margin-top: 10px;
+    font-size: 20px;
+    color: #ddd;
   }
 </style>
 </head>
 <body>
 
-<div id="game-container">
-  <div id="scoreboard">Score: 0 / 300</div>
-  <div id="reels" aria-label="Pizza slot machine reels" role="list"></div>
-  <button id="spin-btn" aria-label="Spin the slot machine">Spin</button>
+<div id="slot-machine">
+  <div class="reel"><img src="" alt="" /></div>
+  <div class="reel"><img src="" alt="" /></div>
+  <div class="reel"><img src="" alt="" /></div>
+  <div class="reel"><img src="" alt="" /></div>
+  <div class="reel"><img src="" alt="" /></div>
+</div>
+<button id="spin-button">Spin!</button>
+<div id="score">Score: 0 / 30</div>
+<div id="spin-count">Spins: 0</div>
+<div id="message" aria-live="polite" role="status"></div>
+
+<div id="win-splash" role="dialog" aria-modal="true" aria-labelledby="win-message">
+  <div id="win-message">You've won! Now score a pizza for yourself :)</div>
+  <img id="winning-image" src="" alt="Winning Pizza" />
+  <a id="buy-link" href="#" target="_blank" rel="noopener noreferrer"><button>Buy This Pizza</button></a>
+  <button id="challenge-friend">Challenge a Friend</button>
+  <div id="spin-total"></div>
+  <button id="play-again">Play Again</button>
 </div>
 
-<div id="splash-screen" role="dialog" aria-modal="true" aria-labelledby="splash-msg">
-  <div id="splash-msg">You've won! Now score a pizza for yourself :)</div>
-  <img id="splash-pizza" src="" alt="Winning pizza image" />
-  <div>
-    <button id="buy-btn" class="splash-btn" aria-label="Buy winning pizza">Get Your Pizza</button>
-    <button id="replay-btn" class="splash-btn" aria-label="Play again">Play Again</button>
-  </div>
-</div>
-
-<canvas id="confetti-container"></canvas>
-
-<!-- You should replace these audio src with your local or hosted royalty-free sounds -->
-<audio id="bg-music" loop src="https://cdn.jsdelivr.net/gh/jbrown/pizza-slot-sounds/bg_music.mp3" preload="auto"></audio>
-<audio id="spin-sound" src="https://cdn.jsdelivr.net/gh/jbrown/pizza-slot-sounds/spin.mp3" preload="auto"></audio>
-<audio id="tick-sound" src="https://cdn.jsdelivr.net/gh/jbrown/pizza-slot-sounds/tick.mp3" preload="auto"></audio>
-<audio id="win-chime" src="https://cdn.jsdelivr.net/gh/jbrown/pizza-slot-sounds/win_chime.mp3" preload="auto"></audio>
-<audio id="woohoo-sound" src="https://cdn.jsdelivr.net/gh/jbrown/pizza-slot-sounds/woohoo.mp3" preload="auto"></audio>
+<audio id="spin-sound" src="spin.mp3"></audio>
+<audio id="win-sound" src="woohoo.mp3"></audio>
 
 <script>
-// --- Config & Data ---
-const pizzaFlavors = [
-  { name: 'truffle_oil_mushroom', filename: 'unique_-_truffle_oil_and_mushroom.jpg', url: 'https://example.com/truffle-oil-mushroom' },
-  { name: 'classic_margherita', filename: 'classic_-_classic_margherita.jpg', url: 'https://example.com/classic-margherita' },
-  { name: 'roasted_vegetable', filename: 'classic_-_roasted_vegetable.jpg', url: 'https://example.com/roasted-vegetable' },
-  { name: 'spinach_pesto', filename: 'classic_-_spinach_and_pesto.jpg', url: 'https://example.com/spinach-pesto' },
-  { name: 'five_cheese_chutney', filename: 'unique_-_five_cheese_sweet_chutney.jpg', url: 'https://example.com/five-cheese-chutney' },
-  { name: 'grilled_vegetable_goat_cheese', filename: 'unique_-_grilled_vegetable_and_french_goat_cheese.jpg', url: 'https://example.com/grilled-vegetable-goat-cheese' },
-  { name: 'tarte_flambée_goat_cheese_olives', filename: 'unique_-_tarte_flambée_with_goat_cheese_&_olives.jpg', url: 'https://example.com/tarte-flambee-goat-cheese' },
-  { name: 'tarte_flambée_mushroom_spinach', filename: 'unique_-_tarte_flambée_with_mushroom_and_spinach.jpg', url: 'https://example.com/tarte-flambee-mushroom' }
-];
+  const pizzas = [
+    { name: "classic_margherita", filename: "classic_-_classic_margherita.jpg", url: "https://www.lidl.com/products/7012814" },
+    { name: "roasted_vegetable", filename: "classic_-_roasted_vegetable.jpg", url: "https://www.lidl.com/products/7012812" },
+    { name: "spinach_pesto", filename: "classic_-_spinach_and_pesto.jpg", url: "https://www.lidl.com/products/7012816" },
+    { name: "five_cheese_sweet_chutney", filename: "unique_-_five_cheese_sweet_chutney.jpg", url: "https://www.lidl.com/products/7144048" },
+    { name: "grilled_vegetable_goat_cheese", filename: "unique_-_grilled_vegetable_and_french_goat_cheese.jpg", url: "https://www.lidl.com/products/7143533" },
+    { name: "goat_cheese_olives", filename: "unique_-_tarte_flambée_with_goat_cheese_&_olives.jpg", url: "https://www.lidl.com/products/0206453" },
+    { name: "mushroom_spinach", filename: "unique_-_tarte_flambée_with_mushroom_and_spinach.jpg", url: "https://www.lidl.com/products/202099001" },
+    { name: "truffle_oil_mushroom", filename: "unique_-_truffle_oil_and_mushroom.jpg", url: "https://www.lidl.com/products/7143532" },
+  ];
 
-// Dimensions
-const ROWS = 1;
-const COLS = 5;
+  const reels = [...document.querySelectorAll(".reel img")];
+  const spinBtn = document.getElementById("spin-button");
+  const scoreDisplay = document.getElementById("score");
+  const spinCountDisplay = document.getElementById("spin-count");
+  const message = document.getElementById("message");
+  const winSplash = document.getElementById("win-splash");
+  const winningImage = document.getElementById("winning-image");
+  const buyLink = document.getElementById("buy-link");
+  const playAgainBtn = document.getElementById("play-again");
+  const spinTotalDisplay = document.getElementById("spin-total");
+  const challengeBtn = document.getElementById("challenge-friend");
+  const spinSound = document.getElementById("spin-sound");
+  const winSound = document.getElementById("win-sound");
 
-// Game state
-let reels = []; // rows x cols of pizza indexes
-let spinning = false;
-let spinIndex = 0; // reel currently stopping
-let score = 0;
-let lastWinningCombination = null;
+  let currentScore = 0;
+  let spinCount = 0;
+  const targetScore = 30;
 
-// DOM
-const reelsContainer = document.getElementById('reels');
-const spinBtn = document.getElementById('spin-btn');
-const scoreboard = document.getElementById('scoreboard');
-const splashScreen = document.getElementById('splash-screen');
-const splashPizza = document.getElementById('splash-pizza');
-const buyBtn = document.getElementById('buy-btn');
-const replayBtn = document.getElementById('replay-btn');
-const confettiCanvas = document.getElementById('confetti-container');
-const ctx = confettiCanvas.getContext('2d');
-
-// Audio
-const bgMusic = document.getElementById('bg-music');
-const spinSound = document.getElementById('spin-sound');
-const tickSound = document.getElementById('tick-sound');
-const winChime = document.getElementById('win-chime');
-const woohooSound = document.getElementById('woohoo-sound');
-
-// Setup reels container cells
-function setupReels() {
-  reelsContainer.innerHTML = '';
-  for (let c = 0; c < COLS; c++) {
-    const cell = document.createElement('div');
-    cell.className = 'reel-cell';
-    cell.setAttribute('role', 'listitem');
-
-    // For spinning effect: two img stacked, top is visible, bottom changes quickly
-    const imgTop = document.createElement('img');
-    imgTop.className = 'top-img';
-    imgTop.style.position = 'absolute';
-    imgTop.style.top = '0';
-    imgTop.style.left = '0';
-    imgTop.style.width = '100%';
-    imgTop.style.height = '100%';
-    imgTop.style.objectFit = 'contain';
-    imgTop.style.transition = 'opacity 0.3s ease';
-    imgTop.style.zIndex = '2';
-
-    const imgBottom = document.createElement('img');
-    imgBottom.className = 'bottom-img';
-    imgBottom.style.position = 'absolute';
-    imgBottom.style.top = '0';
-    imgBottom.style.left = '0';
-    imgBottom.style.width = '100%';
-    imgBottom.style.height = '100%';
-    imgBottom.style.objectFit = 'contain';
-    imgBottom.style.zIndex = '1';
-
-    cell.style.position = 'relative';
-    cell.appendChild(imgBottom);
-    cell.appendChild(imgTop);
-
-    reelsContainer.appendChild(cell);
+  function getRandomPizzaIndex() {
+    return Math.floor(Math.random() * pizzas.length);
   }
-}
 
-// Initialize reels with random pizzas
-function initReels() {
-  reels = [];
-  for (let r = 0; r < ROWS; r++) {
-    reels[r] = [];
-    for (let c = 0; c < COLS; c++) {
-      reels[r][c] = Math.floor(Math.random() * pizzaFlavors.length);
-    }
-  }
-}
-
-// Render reels (set the top images)
-function renderReels() {
-  const cells = reelsContainer.querySelectorAll('.reel-cell');
-  for (let c = 0; c < COLS; c++) {
-    const pizzaIdx = reels[0][c];
-    const topImg = cells[c].querySelector('.top-img');
-    const bottomImg = cells[c].querySelector('.bottom-img');
-    topImg.src = pizzaFlavors[pizzaIdx].filename;
-    topImg.alt = pizzaFlavors[pizzaIdx].name.replace(/_/g, ' ') + ' pizza';
-    bottomImg.src = pizzaFlavors[(pizzaIdx + 1) % pizzaFlavors.length].filename; // default bottom image to next pizza
-  }
-}
-
-// Flash winning cells
-function flashWinningCells(coords) {
-  const cells = reelsContainer.querySelectorAll('.reel-cell');
-  coords.forEach(pos => {
-    const index = pos.r * COLS + pos.c;
-    cells[index].classList.add('flash');
-  });
-  setTimeout(() => {
-    coords.forEach(pos => {
-      const index = pos.r * COLS + pos.c;
-      cells[index].classList.remove('flash');
+  function initReels() {
+    reels.forEach(img => {
+      const idx = getRandomPizzaIndex();
+      img.src = pizzas[idx].filename;
+      img.alt = pizzas[idx].name.replace(/_/g, " ") + " pizza";
+      img.dataset.index = idx;
+      img.classList.remove("highlight");
     });
-  }, 1000);
-}
+  }
 
-// Check wins on the single row, including 2+ matches
-function checkWins() {
-  let pointsEarned = 0;
-  let winningCombo = null;
+  initReels();
+  updateScore();
+  updateSpinCount();
 
-  const lineCoords = [];
-  for (let c = 0; c < COLS; c++) lineCoords.push({r: 0, c});
+  function updateScore() {
+    scoreDisplay.textContent = `Score: ${currentScore} / ${targetScore}`;
+  }
+  function updateSpinCount() {
+    spinCountDisplay.textContent = `Spins: ${spinCount}`;
+  }
 
-  // Check matches from length 5 down to 2
-  function checkLine(lineCoords) {
-    for (let length = 5; length >= 2; length--) {
-      for (let start = 0; start <= lineCoords.length - length; start++) {
-        const segment = lineCoords.slice(start, start + length);
-        const firstPizza = reels[segment[0].r][segment[0].c];
-        if (segment.every(pos => reels[pos.r][pos.c] === firstPizza)) {
-          let pts = 0;
-          if (length === 2) pts = 2;
-          else if (length === 3) pts = 3;
-          else if (length === 4) pts = 10;
-          else if (length === 5) pts = 100;
-          return { points: pts, pizzaIndex: firstPizza, length, coords: segment };
+  function spinReels() {
+    if (spinBtn.disabled) return;
+    spinBtn.disabled = true;
+    message.style.display = "none";
+
+    spinCount++;
+    updateSpinCount();
+
+    spinSound.currentTime = 0;
+    spinSound.play();
+
+    let finalIndexes = [];
+    let spinIntervals = [];
+    let stopTimeouts = [];
+
+    reels.forEach((img, i) => {
+      img.classList.remove("highlight");
+      spinIntervals[i] = setInterval(() => {
+        const idx = getRandomPizzaIndex();
+        img.src = pizzas[idx].filename;
+        img.alt = pizzas[idx].name.replace(/_/g, " ") + " pizza";
+        img.dataset.index = idx;
+      }, 70);
+    });
+
+    reels.forEach((img, i) => {
+      stopTimeouts[i] = setTimeout(() => {
+        clearInterval(spinIntervals[i]);
+        const finalIdx = getRandomPizzaIndex();
+        finalIndexes[i] = finalIdx;
+        img.src = pizzas[finalIdx].filename;
+        img.alt = pizzas[finalIdx].name.replace(/_/g, " ") + " pizza";
+        img.dataset.index = finalIdx;
+
+        if (i === reels.length - 1) {
+          spinBtn.disabled = false;
+          processResults(finalIndexes);
         }
+      }, 1500 + i * 400);
+    });
+  }
+
+  function processResults(finalIndexes) {
+    const counts = {};
+    const indexesByFlavor = {};
+    finalIndexes.forEach((idx, i) => {
+      counts[idx] = (counts[idx] || 0) + 1;
+      if (!indexesByFlavor[idx]) indexesByFlavor[idx] = [];
+      indexesByFlavor[idx].push(i);
+    });
+
+    let totalPoints = 0;
+    let winningIndexes = [];
+
+    for (const idx in counts) {
+      const count = counts[idx];
+      if (count >= 2) {
+        if (count === 2) totalPoints += 2;
+        else if (count === 3) totalPoints += 5;
+        else if (count === 4) totalPoints += 15;
+        else if (count >= 5) totalPoints += 100;
+        winningIndexes = winningIndexes.concat(indexesByFlavor[idx]);
       }
     }
-    return null;
-  }
 
-  const result = checkLine(lineCoords);
-  if (result && result.points > pointsEarned) {
-    pointsEarned = result.points;
-    winningCombo = result;
-  }
+    if (totalPoints > 0) {
+      flashWinningReels(winningIndexes);
+      showMessage(`+${totalPoints} points!`);
+      currentScore += totalPoints;
+      updateScore();
 
-  if (pointsEarned > 0) {
-    score += pointsEarned;
-    lastWinningCombination = winningCombo;
-    winChime.currentTime = 0;
-    winChime.play();
-
-    flashWinningCells(winningCombo.coords);
-    updateScoreboard();
-  }
-  
-  if (score >= 300) {
-    triggerWinSplash();
-  }
-}
-
-function updateScoreboard() {
-  scoreboard.textContent = `Score: ${score} / 300`;
-}
-
-function triggerWinSplash() {
-  woohooSound.currentTime = 0;
-  woohooSound.play();
-  startConfetti();
-
-  if (!lastWinningCombination) return;
-
-  const pizzaIndex = lastWinningCombination.pizzaIndex;
-  const pizza = pizzaFlavors[pizzaIndex];
-  splashPizza.src = pizza.filename;
-  splashPizza.alt = pizza.name.replace(/_/g, ' ') + ' pizza';
-  buyBtn.onclick = () => window.open(pizza.url, '_blank');
-  splashScreen.classList.add('visible');
-
-  score = 0;
-  updateScoreboard();
-}
-
-function hideSplash() {
-  splashScreen.classList.remove('visible');
-  stopConfetti();
-}
-
-// Confetti effect
-let confettiElements = [];
-let confettiAnimationFrame;
-const confettiColors = ['#d9534f', '#f0ad4e', '#5bc0de', '#5cb85c', '#0275d8'];
-const confettiCount = 150;
-
-class Confetti {
-  constructor(canvasWidth, canvasHeight) {
-    this.canvasWidth = canvasWidth;
-    this.canvasHeight = canvasHeight;
-    this.reset();
-  }
-  reset() {
-    this.x = Math.random() * this.canvasWidth;
-    this.y = Math.random() * -this.canvasHeight;
-    this.size = Math.random() * 8 + 5;
-    this.color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
-    this.speed = Math.random() * 3 + 2;
-    this.angle = Math.random() * 360;
-    this.angularSpeed = Math.random() * 0.1 + 0.01;
-    this.opacity = 1;
-  }
-  update() {
-    this.y += this.speed;
-    this.angle += this.angularSpeed;
-    if (this.y > this.canvasHeight) {
-      this.reset();
-      this.y = 0;
-    }
-  }
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.angle);
-    ctx.fillStyle = this.color;
-    ctx.globalAlpha = this.opacity;
-    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
-    ctx.restore();
-  }
-}
-
-function startConfetti() {
-  confettiCanvas.width = window.innerWidth;
-  confettiCanvas.height = window.innerHeight;
-  confettiElements = [];
-  for (let i = 0; i < confettiCount; i++) {
-    confettiElements.push(new Confetti(confettiCanvas.width, confettiCanvas.height));
-  }
-  confettiLoop();
-}
-
-function confettiLoop() {
-  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-  for (const confetti of confettiElements) {
-    confetti.update();
-    confetti.draw(ctx);
-  }
-  confettiAnimationFrame = requestAnimationFrame(confettiLoop);
-}
-
-function stopConfetti() {
-  cancelAnimationFrame(confettiAnimationFrame);
-  ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-}
-
-// Initialize game
-function init() {
-  setupReels();
-  initReels();
-  renderReels();
-  updateScoreboard();
-  bgMusic.volume = 0.15;
-  bgMusic.play().catch(() => {});
-}
-init();
-
-// Spin button & tap anywhere triggers spin
-spinBtn.addEventListener('click', spin);
-document.body.addEventListener('click', e => {
-  if (!spinning && !splashScreen.classList.contains('visible')) {
-    spin();
-  }
-});
-
-replayBtn.addEventListener('click', () => {
-  hideSplash();
-  initReels();
-  renderReels();
-});
-
-// Prevent double spin
-let spinTimeouts = [];
-let spinIntervals = [];
-let spinStartTime;
-const spinDuration = 2500; // ms total spin time
-const staggerDelay = 400;
-
-function spin() {
-  if (spinning) return;
-  spinning = true;
-  spinBtn.disabled = true;
-  spinSound.currentTime = 0;
-  spinSound.play();
-
-  const cells = reelsContainer.querySelectorAll('.reel-cell');
-  spinStartTime = performance.now();
-
-  // Clear previous timers if any
-  spinTimeouts.forEach(clearTimeout);
-  spinTimeouts = [];
-  spinIntervals.forEach(clearInterval);
-  spinIntervals = [];
-
-  let currentPizzaIndexes = [...reels[0]];
-
-  function spinReel(reelIndex) {
-    if (reelIndex >= COLS) {
-      spinning = false;
-      spinBtn.disabled = false;
-      checkWins();
-      return;
-    }
-    let speed = 60;
-    let lastChange = performance.now();
-
-    function step() {
-      let now = performance.now();
-      if (now - lastChange > speed) {
-        currentPizzaIndexes[reelIndex] = (currentPizzaIndexes[reelIndex] + 1) % pizzaFlavors.length;
-
-        // Update images for spin effect
-        const cell = cells[reelIndex];
-        const topImg = cell.querySelector('.top-img');
-        const bottomImg = cell.querySelector('.bottom-img');
-
-        bottomImg.src = pizzaFlavors[currentPizzaIndexes[reelIndex]].filename;
-        topImg.style.opacity = 0;
-
+      if (currentScore >= targetScore) {
         setTimeout(() => {
-          topImg.src = pizzaFlavors[currentPizzaIndexes[reelIndex]].filename;
-          topImg.alt = pizzaFlavors[currentPizzaIndexes[reelIndex]].name.replace(/_/g, ' ') + ' pizza';
-          topImg.style.opacity = 1;
-        }, 100);
-
-        lastChange = now;
+          showWin(finalIndexes[winningIndexes[0]]);
+        }, 800);
       }
-      if (now - spinStartTime >= spinDuration + reelIndex * staggerDelay) {
-        // Stop this reel at final pizza
-        reels[0][reelIndex] = currentPizzaIndexes[reelIndex];
-        renderReels();
-        spinReel(reelIndex + 1);
-        return;
-      }
-      requestAnimationFrame(step);
     }
-    step();
   }
-  spinReel(0);
-}
+
+  function flashWinningReels(indexes) {
+    let flashes = 0;
+    const maxFlashes = 4; // 2 cycles (on/off)
+
+    function toggleFlash() {
+      flashes++;
+      indexes.forEach(i => {
+        reels[i].classList.toggle("highlight");
+      });
+      if (flashes < maxFlashes) {
+        setTimeout(toggleFlash, 300);
+      } else {
+        indexes.forEach(i => reels[i].classList.remove("highlight"));
+      }
+    }
+    toggleFlash();
+  }
+
+  function showMessage(text) {
+    message.textContent = text;
+    message.style.display = "block";
+    setTimeout(() => {
+      message.style.display = "none";
+    }, 1800);
+  }
+
+  function showWin(winningIdx) {
+    winSound.currentTime = 0;
+    winSound.play();
+
+    const pizza = pizzas[winningIdx];
+    winningImage.src = pizza.filename;
+    winningImage.alt = pizza.name.replace(/_/g, " ") + " pizza";
+    buyLink.href = pizza.url;
+
+    spinTotalDisplay.textContent = `It took ${spinCount} spins to reach 30 points!`;
+    winSplash.style.display = "flex";
+  }
+
+  function resetGame() {
+    currentScore = 0;
+    spinCount = 0;
+    updateScore();
+    updateSpinCount();
+    winSplash.style.display = "none";
+  }
+
+  spinBtn.addEventListener("click", spinReels);
+  playAgainBtn.addEventListener("click", resetGame);
+
+  document.body.addEventListener("click", e => {
+    if (
+      !spinBtn.disabled &&
+      !e.target.closest("button") &&
+      !winSplash.style.display.includes("flex")
+    ) {
+      spinReels();
+    }
+  });
+
+  // Challenge a Friend button functionality
+  challengeBtn.addEventListener("click", () => {
+    const gameURL = window.location.href;
+    const spins = spinCount;
+    const message = `I scored 30 points in ${spins} spins. Can you do better? Play here: ${gameURL}`;
+
+    if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
+      // Mobile - open SMS composer with prefilled message
+      window.location.href = `sms:?&body=${encodeURIComponent(message)}`;
+    } else {
+      // Desktop - copy to clipboard and alert
+      navigator.clipboard.writeText(message).then(() => {
+        alert("Challenge message copied to clipboard! Share it with your friends.");
+      }).catch(() => {
+        alert("Could not copy challenge message. Please share manually:\n\n" + message);
+      });
+    }
+  });
 </script>
+
 </body>
 </html>
